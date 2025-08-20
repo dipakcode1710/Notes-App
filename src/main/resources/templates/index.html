@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Notes App</h1>
+            <a href="/new" class="btn btn-primary">+ New Note</a>
+        </header>
+        
+        <div class="search-section">
+            <form method="get" action="/">
+                <div class="search-container">
+                    <input type="text" name="search" th:value="${search}" placeholder="Search notes..." class="search-input">
+                    <button type="submit" class="btn btn-secondary">Search</button>
+                    <a href="/" class="btn btn-outline">Clear</a>
+                </div>
+            </form>
+            
+            <form method="get" action="/" class="tag-search">
+                <div class="search-container">
+                    <input type="text" name="tags" th:value="${tags}" placeholder="Filter by tags (comma-separated)..." class="search-input">
+                    <button type="submit" class="btn btn-secondary">Filter</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="notes-grid">
+            <div th:if="${notes.empty}" class="empty-state">
+                <p>No notes found. <a href="/new">Create your first note!</a></p>
+            </div>
+            
+            <div th:each="note : ${notes}" class="note-card">
+                <div class="note-header">
+                    <h3><a th:href="@{'/view/' + ${note.id}}" th:text="${note.title}">Note Title</a></h3>
+                    <div class="note-actions">
+                        <a th:href="@{'/edit/' + ${note.id}}" class="btn btn-small">Edit</a>
+                        <form th:action="@{'/delete/' + ${note.id}}" method="post" style="display: inline;" 
+                              onsubmit="return confirm('Are you sure you want to delete this note?')">
+                            <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="note-content" th:text="${#strings.abbreviate(note.content, 150)}">
+                    Note content preview...
+                </div>
+                
+                <div class="note-tags" th:if="${not note.tags.empty}">
+                    <span th:each="tag : ${note.tags}" class="tag" th:text="${tag}">tag</span>
+                </div>
+                
+                <div class="note-meta">
+                    <span th:text="${#temporals.format(note.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

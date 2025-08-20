@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${note.title}">Note View</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 th:text="${note.title}">Note Title</h1>
+            <div class="note-actions">
+                <a href="/" class="btn btn-outline">← Back to Notes</a>
+                <a th:href="@{'/edit/' + ${note.id}}" class="btn btn-secondary">Edit</a>
+            </div>
+        </header>
+        
+        <div class="note-details">
+            <div class="note-meta">
+                <span>Created: <span th:text="${#temporals.format(note.createdAt, 'MMM dd, yyyy HH:mm')}">Date</span></span>
+                <span>Updated: <span th:text="${#temporals.format(note.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</span></span>
+            </div>
+            
+            <div class="note-tags" th:if="${not note.tags.empty}">
+                <span th:each="tag : ${note.tags}" class="tag" th:text="${tag}">tag</span>
+            </div>
+        </div>
+        
+        <div class="note-content-view" th:utext="${htmlContent}">
+            Note content will be rendered here
+        </div>
+        
+        <div class="note-actions-bottom">
+            <a th:href="@{'/edit/' + ${note.id}}" class="btn btn-primary">Edit Note</a>
+            <form th:action="@{'/delete/' + ${note.id}}" method="post" style="display: inline;" 
+                  onsubmit="return confirm('Are you sure you want to delete this note?')">
+                <button type="submit" class="btn btn-danger">Delete Note</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
