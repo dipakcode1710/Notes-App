@@ -18,17 +18,18 @@
             <form method="get" action="/">
                 <div class="search-container">
                     <input type="text" name="search" th:value="${search}" placeholder="Search notes..." class="search-input">
-                    <button type="submit" class="btn btn-secondary">Search</button>
+                    <input type="text" name="tags" th:value="${tags}" placeholder="Tags (comma-separated)" class="search-input">
+                    <button type="submit" class="btn btn-secondary">Apply Filters</button>
                     <a href="/" class="btn btn-outline">Clear</a>
                 </div>
             </form>
-            
-            <form method="get" action="/" class="tag-search">
-                <div class="search-container">
-                    <input type="text" name="tags" th:value="${tags}" placeholder="Filter by tags (comma-separated)..." class="search-input">
-                    <button type="submit" class="btn btn-secondary">Filter</button>
+
+            <div class="tag-search" th:if="${not topTags.empty}">
+                <p class="top-tags-title">Popular tags:</p>
+                <div class="top-tags">
+                    <a th:each="tag : ${topTags}" th:href="@{/(tags=${tag})}" class="tag-filter-link" th:text="${'#' + tag}">#tag</a>
                 </div>
-            </form>
+            </div>
         </div>
         
         <div class="notes-grid">
@@ -57,6 +58,8 @@
                 </div>
                 
                 <div class="note-meta">
+                    <span th:text="${note.wordCount + ' words'}">0 words</span>
+                    <span> • </span>
                     <span th:text="${#temporals.format(note.updatedAt, 'MMM dd, yyyy HH:mm')}">Date</span>
                 </div>
             </div>
