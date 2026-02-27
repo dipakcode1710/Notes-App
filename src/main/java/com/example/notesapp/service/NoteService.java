@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,16 +47,38 @@ public class NoteService {
         }
         return noteRepository.findBySearchTerm(searchTerm.trim());
     }
+
+    public List<Note> filterNotes(String searchTerm, String tags) {
+        String normalizedSearch = searchTerm == null ? "" : searchTerm.trim().toLowerCase();
+        Set<String> requestedTags = parseTags(tags).stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        return getAllNotes().stream()
+                .filter(note -> matchesSearch(note, normalizedSearch))
+                .filter(note -> matchesTags(note, requestedTags))
+                .sorted(Comparator.comparing(Note::getUpdatedAt).reversed())
+                .collect(Collectors.toList());
+    }
     
     public List<Note> findNotesByTags(String tags) {
         if (tags == null || tags.trim().isEmpty()) {
             return getAllNotes();
         }
-        List<String> tagList = Arrays.asList(tags.split(","))
-                .stream()
-                .map(String::trim)
-                .collect(Collectors.toList());
+        List<String> tagList = parseTags(tags);
         return noteRepository.findByTagsIn(tagList);
+    }
+
+    public List<String> getTopTags(int limit) {
+        return getAllNotes().stream()
+                .flatMap(note -> note.getTags().stream())
+                .filter(tag -> !tag.isBlank())
+                .collect(Collectors.groupingBy(String::toLowerCase, Collectors.counting()))
+                .entrySet().stream()
+                .sorted((left, right) -> Long.compare(right.getValue(), left.getValue()))
+                .limit(limit)
+                .map(entry -> entry.getKey())
+                .collect(Collectors.toList());
     }
     
     public String convertMarkdownToHtml(String markdown) {
@@ -65,13 +88,7 @@ public class NoteService {
     
     public Note createNote(String title, String content, String tagsString) {
         Note note = new Note(title, content);
-        if (tagsString != null && !tagsString.trim().isEmpty()) {
-            Set<String> tags = Arrays.stream(tagsString.split(","))
-                    .map(String::trim)
-                    .filter(tag -> !tag.isEmpty())
-                    .collect(Collectors.toSet());
-            note.setTags(tags);
-        }
+        note.setTags(parseTags(tagsString).stream().collect(Collectors.toSet()));
         return saveNote(note);
     }
     
@@ -82,14 +99,47 @@ public class NoteService {
             note.setTitle(title);
             note.setContent(content);
             
-            Set<String> tags = Arrays.stream(tagsString.split(","))
-                    .map(String::trim)
-                    .filter(tag -> !tag.isEmpty())
-                    .collect(Collectors.toSet());
-            note.setTags(tags);
+            note.setTags(parseTags(tagsString).stream().collect(Collectors.toSet()));
             
             return saveNote(note);
         }
         return null;
+    }
+
+    private List<String> parseTags(String tagsString) {
+        if (tagsString == null || tagsString.trim().isEmpty()) {
+            return List.of();
+        }
+
+        return Arrays.stream(tagsString.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .filter(tag -> !tag.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private boolean matchesSearch(Note note, String normalizedSearch) {
+        if (normalizedSearch.isBlank()) {
+            return true;
+        }
+
+        String title = note.getTitle() == null ? "" : note.getTitle().toLowerCase();
+        String content = note.getContent() == null ? "" : note.getContent().toLowerCase();
+
+        return title.contains(normalizedSearch)
+                || content.contains(normalizedSearch)
+                || note.getTags().stream().anyMatch(tag -> tag.toLowerCase().contains(normalizedSearch));
+    }
+
+    private boolean matchesTags(Note note, Set<String> requestedTags) {
+        if (requestedTags.isEmpty()) {
+            return true;
+        }
+
+        Set<String> lowerCaseTags = note.getTags().stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+        return lowerCaseTags.containsAll(requestedTags);
     }
 }

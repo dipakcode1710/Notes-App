@@ -3,6 +3,7 @@ package com.example.notesapp.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -59,6 +60,17 @@ public class Note {
     
     public Set<String> getTags() { return tags; }
     public void setTags(Set<String> tags) { this.tags = tags; }
+
+    @Transient
+    public int getWordCount() {
+        if (content == null || content.isBlank()) {
+            return 0;
+        }
+
+        return (int) Arrays.stream(content.trim().split("\\s+"))
+                .filter(word -> !word.isBlank())
+                .count();
+    }
     
     @PreUpdate
     public void preUpdate() {

@@ -21,19 +21,12 @@ public class NoteController {
     public String index(Model model, 
                        @RequestParam(required = false) String search,
                        @RequestParam(required = false) String tags) {
-        List<Note> notes;
-        
-        if (search != null && !search.trim().isEmpty()) {
-            notes = noteService.searchNotes(search);
-        } else if (tags != null && !tags.trim().isEmpty()) {
-            notes = noteService.findNotesByTags(tags);
-        } else {
-            notes = noteService.getAllNotes();
-        }
+        List<Note> notes = noteService.filterNotes(search, tags);
         
         model.addAttribute("notes", notes);
         model.addAttribute("search", search);
         model.addAttribute("tags", tags);
+        model.addAttribute("topTags", noteService.getTopTags(8));
         return "index";
     }
     

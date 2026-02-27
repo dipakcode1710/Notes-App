@@ -122,6 +122,31 @@ header h1 {
     padding-top: 15px;
 }
 
+.top-tags-title {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.top-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-filter-link {
+    text-decoration: none;
+    color: #0066cc;
+    background-color: #e7f3ff;
+    border-radius: 16px;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.tag-filter-link:hover {
+    background-color: #cfe6ff;
+}
+
 /* Notes Grid */
 .notes-grid {
     display: grid;
